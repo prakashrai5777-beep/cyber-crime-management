@@ -1,7 +1,7 @@
 # Project Screenshots
 
 ## Login Page
-![Login](Login Page.png)
+![Login](Login.png)
 
 ## Dashboard
 ![Dashboard](dashboard.png)
