@@ -1,10 +1,13 @@
 # Project Screenshots
 
 ## Login Page
-![Login](Login.png)
+![Login](Login%20Page.png)
 
-## Dashboard
-![Dashboard](dashboard.png)
+## Home Page
+![Home](Home%20page.png)
 
-## Complaint Form
-![Complaint](complaint.png)
+## Report Complaint
+![Report](Report%20Complaint%20Page.png)
+
+## Track Complaint
+![Track](Track%20Complaint.png)
