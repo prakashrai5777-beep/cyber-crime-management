@@ -1,12 +1,18 @@
 <?php
 session_start();
 
-if(!isset($_SESSION['username'])){
+// Secure session check
+if (!isset($_SESSION['username'])) {
     header("location:login.html");
     exit();
 }
 
+// DB connection
 $conn = mysqli_connect("localhost", "root", "", "cyber_crime");
+
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
 
 // Total Cases
 $total = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM complaints"))['total'];
@@ -20,7 +26,7 @@ $resolved = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FRO
 // Total Users
 $users = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM user"))['total'];
 
-// Recent Complaints (JOIN with user table)
+// Recent Complaints (LIMIT added)
 $recent = mysqli_query($conn, "
 SELECT c.id, u.name AS user_name, c.crime_type, c.status, c.created_at, c.description
 FROM complaints c
@@ -35,92 +41,113 @@ ORDER BY c.created_at DESC
 <title>Cyber Crime Dashboard</title>
 
 <style>
-bbody {
+body {
     font-family: 'Poppins', sans-serif;
     margin: 0;
-    background: linear-gradient(135deg, #eef2f7, #e0e7ff);
+    background: #f4f6f9;
 }
 
 /* Sidebar */
 .sidebar {
     width: 220px;
     height: 100vh;
-    background: #0f172a;
-    color: white;
+    background: #000;
+    color: #fff;
     position: fixed;
-    box-shadow: 5px 0 15px rgba(0,0,0,0.2);
 }
 
 .sidebar h2 {
     text-align: center;
     padding: 20px;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
 }
 
 .sidebar a {
     display: block;
     padding: 12px 20px;
-    color: #cbd5f5;
+    color: #bbb;
     text-decoration: none;
     transition: 0.3s;
 }
 
 .sidebar a:hover {
-    background: #1e293b;
-    padding-left: 30px;
-    color: #38bdf8;
+    background: #111;
+    padding-left: 28px;
+    color: #fff;
 }
 
 /* Main */
 .main {
     margin-left: 220px;
     padding: 20px;
-    animation: fadeIn 1s ease-in-out;
 }
 
-h1 {
-    animation: bounceIn 1s ease;
+/* Heading */
+.main h1 {
+    text-align: center;
+    color: #111;
 }
 
 /* Cards */
 .cards {
     display: flex;
     gap: 20px;
-    margin-top: 20px;
+    margin-top: 30px;
 }
 
+/* Card Design */
 .card {
     flex: 1;
-    padding: 20px;
-    background: white;
-    border-radius: 15px;
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
     text-align: center;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: bold;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    
+    /* Animation */
+    animation: bounceFade 0.6s ease;
     transition: 0.3s;
-    animation: popUp 0.6s ease forwards;
 }
 
+/* Hover Lift */
 .card:hover {
-    transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    transform: translateY(-10px);
 }
+
+/* Bounce Animation */
+@keyframes bounceFade {
+    0% {
+        transform: translateY(40px);
+        opacity: 0;
+    }
+    60% {
+        transform: translateY(-8px);
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
 
 /* Table */
 table {
     width: 100%;
     margin-top: 30px;
-    background: white;
+    background: #fff;
     border-radius: 10px;
-    overflow: hidden;
     border-collapse: collapse;
-    animation: fadeInUp 1s ease;
+    overflow: hidden;
 }
 
 th {
-    background: #0f172a;
-    color: white;
+    background: #000;
+    color: #fff;
     padding: 12px;
 }
 
@@ -130,63 +157,18 @@ td {
 }
 
 tr:hover {
-    background: #f1f5f9;
-    transition: 0.3s;
+    background: #f9fafb;
 }
 
-/* Buttons */
-a {
-    text-decoration: none;
+/* Status */
+.pending {
+    color: #555;
     font-weight: bold;
 }
 
-a:hover {
-    opacity: 0.7;
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes popUp {
-    0% {
-        transform: scale(0.5);
-        opacity: 0;
-    }
-    80% {
-        transform: scale(1.1);
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-@keyframes bounceIn {
-    0% {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-    60% {
-        transform: translateY(10px);
-    }
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-@keyframes fadeInUp {
-    from {
-        transform: translateY(40px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+.resolved {
+    color: green;
+    font-weight: bold;
 }
 </style>
 
@@ -195,11 +177,11 @@ a:hover {
 <body>
 
 <div class="sidebar">
-    <h2><a href="dashboard.php" style="color:white; text-decoration:none;">Cyber Admin</a></h2>
+    <h2>Cyber Admin</h2>
     <a href="dashboard.php">Dashboard</a>
     <a href="cases.php">Cases</a>
     <a href="add_complaint.php">Complaints</a>
-    <a href="users.php">users</a>
+    <a href="users.php">Users</a>
     <a href="reports.php">Reports</a>
     <a href="logout.php">Logout</a>
 </div>
@@ -232,20 +214,23 @@ a:hover {
         <tbody>
 
         <?php
-        if(mysqli_num_rows($recent) > 0){
-            while($row = mysqli_fetch_assoc($recent)){
+        if (mysqli_num_rows($recent) > 0) {
+            while ($row = mysqli_fetch_assoc($recent)) {
+
+                $statusClass = ($row['status'] == 'resolved') ? 'resolved' : 'pending';
+
                 echo "<tr>
-                <td>".$row['id']."</td>
-                <td>".$row['user_name']."</td>
-                <td>".$row['crime_type']."</td>
-                <td>".$row['status']."</td>
-                <td>".$row['created_at']."</td>
-                <td>".$row['description']."</td>
+                <td>" . htmlspecialchars($row['id']) . "</td>
+                <td>" . htmlspecialchars($row['user_name']) . "</td>
+                <td>" . htmlspecialchars($row['crime_type']) . "</td>
+                <td class='$statusClass'>" . htmlspecialchars($row['status']) . "</td>
+                <td>" . date("d M Y", strtotime($row['created_at'])) . "</td>
+                <td>" . htmlspecialchars($row['description']) . "</td>
 
                 <td>
-                <a href='update_status.php?id=".$row['id']."' style='color:green;'>Resolve</a> |
-                <a href='delete.php?id=".$row['id']."' 
-                onclick=\"return confirm('Are you sure delete karna hai?')\"
+                <a href='update_status.php?id=" . $row['id'] . "' style='color:green;'>Resolve</a> |
+                <a href='delete.php?id=" . $row['id'] . "' 
+                onclick=\"return confirm('Are you sure you want to delete?')\" 
                 style='color:red;'>Delete</a>
                 </td>
 
